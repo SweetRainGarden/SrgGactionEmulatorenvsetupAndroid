@@ -28,13 +28,6 @@ jobs:
         echo "CPU Cores: $(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 'unknown')"
         echo "Total Memory: $(free -h 2>/dev/null | grep '^Mem:' | awk '{print $2}' || system_profiler SPHardwareDataType 2>/dev/null | grep 'Memory:' | awk '{print $2, $3}' || echo 'unknown')"
       
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        api-level: 29
-        target: google_apis
-        arch: x86_64
-        
     - name: Run Android Emulator Action
       id: emulator-test
       timeout-minutes: 15
@@ -50,6 +43,8 @@ jobs:
     - name: Verify Action Output
       run: |
         echo "Emulator name: ${{ steps.emulator-test.outputs.emulator-name }}"
+        echo "Device serial: ${{ steps.emulator-test.outputs.device-serial }}"
+        echo "Package name: ${{ steps.emulator-test.outputs.package-name }}"
         
     - name: Check Test Results
       run: |

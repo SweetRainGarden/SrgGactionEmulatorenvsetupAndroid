@@ -19,8 +19,19 @@ echo "  Run-script: $RUN_SCRIPT_PATH"
 echo "  API Level: $API_LEVEL"
 echo ""
 
-# Run the setup script
-./setup-emulator.sh
+# Note: This test command is for local testing only
+# In the new architecture, the android-emulator-runner handles the emulator setup
+# and then runs our emulator-script.sh inside the emulator
+
+echo "⚠️  WARNING: This test command is for reference only"
+echo "The new action uses reactivecircus/android-emulator-runner internally"
+echo "To test locally, you would need to:"
+echo "1. Install Android SDK manually"
+echo "2. Use android-emulator-runner directly, or"
+echo "3. Use the GitHub Action in a workflow"
+echo ""
+echo "For quick testing, run the emulator-script.sh directly if you have an emulator running:"
+echo "./emulator-script.sh"
 
 echo ""
 echo "=== Test completed! ==="

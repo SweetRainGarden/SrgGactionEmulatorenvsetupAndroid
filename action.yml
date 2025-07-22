@@ -42,25 +42,31 @@ inputs:
 outputs:
   emulator-name:
     description: 'Name of the created Android emulator'
+  device-serial:
+    description: 'Device serial number of the emulator'
+  package-name:
+    description: 'Package name of the installed APK'
 
 runs:
   using: 'composite'
   steps:
-    - name: Setup Android Emulator Environment
-      shell: bash
-      run: |
-        echo "Setting up Android emulator environment..."
-        ${{ github.action_path }}/setup-emulator.sh
+    - name: Run Android Emulator with APK Testing
+      uses: reactivecircus/android-emulator-runner@v2.34.0
+      with:
+        api-level: ${{ inputs.api-level }}
+        target: ${{ inputs.target }}
+        arch: ${{ inputs.arch }}
+        profile: ${{ inputs.profile }}
+        emulator-options: ${{ inputs.debug-mode == 'true' && '-no-snapshot-save -gpu swiftshader_indirect -no-audio -no-boot-anim' || inputs.emulator-options }}
+        disable-animations: true
+        script: |
+          echo "🚀 Starting Android emulator script execution..."
+          ${{ github.action_path }}/emulator-script.sh
       env:
-        API_LEVEL: ${{ inputs.api-level }}
-        TARGET: ${{ inputs.target }}
-        ARCH: ${{ inputs.arch }}
-        PROFILE: ${{ inputs.profile }}
-        EMULATOR_OPTIONS: ${{ inputs.emulator-options }}
-        DEBUG_MODE: ${{ inputs.debug-mode }}
         APK_PATH: ${{ inputs.apk-path }}
         PRE_SCRIPT_PATH: ${{ inputs.pre-script-path }}
         RUN_SCRIPT_PATH: ${{ inputs.run-script-path }}
+        DEBUG_MODE: ${{ inputs.debug-mode }}
 
 branding:
   icon: 'smartphone'
