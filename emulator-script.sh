@@ -67,8 +67,25 @@ if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
     adb install -r "$APK_PATH"
     
     # Extract package name from APK
-    if command -v aapt >/dev/null 2>&1; then
-        PACKAGE_NAME=$(aapt dump badging "$APK_PATH" | grep "^package:" | sed "s/^package: name='\([^']*\)'.*/\1/")
+    # First try to find aapt in build-tools
+    AAPT_PATH=""
+    if [ -n "$ANDROID_HOME" ]; then
+        # Find the latest build-tools version
+        if [ -d "$ANDROID_HOME/build-tools" ]; then
+            BUILD_TOOLS_VERSION=$(ls -1 "$ANDROID_HOME/build-tools" | grep -E '^[0-9]+\.' | sort -V | tail -1)
+            if [ -n "$BUILD_TOOLS_VERSION" ] && [ -f "$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt" ]; then
+                AAPT_PATH="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/aapt"
+            fi
+        fi
+    fi
+    
+    # Try system aapt as fallback
+    if [ -z "$AAPT_PATH" ] && command -v aapt >/dev/null 2>&1; then
+        AAPT_PATH="aapt"
+    fi
+    
+    if [ -n "$AAPT_PATH" ]; then
+        PACKAGE_NAME=$("$AAPT_PATH" dump badging "$APK_PATH" | grep "^package:" | sed "s/^package: name='\([^']*\)'.*/\1/")
         if [ -n "$PACKAGE_NAME" ]; then
             print_info "Installed package: $PACKAGE_NAME"
             # Set output for GitHub Actions
