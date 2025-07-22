@@ -125,12 +125,39 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
         local title="$2"
         if [ -f "$screenshot_path" ]; then
             echo "### $title" >> "$GITHUB_STEP_SUMMARY"
-            if command -v base64 >/dev/null 2>&1; then
-                local base64_image=$(base64 -i "$screenshot_path" | tr -d '\n')
-                echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
+            
+            # Get file size in KB
+            local file_size_kb
+            if command -v stat >/dev/null 2>&1; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS stat command
+                    file_size_kb=$(($(stat -f%z "$screenshot_path") / 1024))
+                else
+                    # Linux stat command
+                    file_size_kb=$(($(stat -c%s "$screenshot_path") / 1024))
+                fi
             else
-                echo "Screenshot saved: \`$screenshot_path\`" >> "$GITHUB_STEP_SUMMARY"
+                file_size_kb=0
             fi
+            
+            echo "📄 **File**: \`$screenshot_path\` (${file_size_kb}KB)" >> "$GITHUB_STEP_SUMMARY"
+            
+            # Only embed small images (under 200KB) to avoid GitHub's 1MB limit
+            if [ "$file_size_kb" -lt 200 ] && command -v base64 >/dev/null 2>&1; then
+                local base64_image=$(base64 -i "$screenshot_path" | tr -d '\n')
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "<details><summary>📱 View Screenshot</summary>" >> "$GITHUB_STEP_SUMMARY"
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+            else
+                echo "📎 Screenshot too large for inline display - check artifacts" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+        else
+            echo "### $title" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Screenshot not found: \`$screenshot_path\`" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
         fi
     }
