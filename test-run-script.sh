@@ -1,8 +1,8 @@
 #!/bin/bash
-# Initialize local summary file if not in CI
+# Initialize local summary file if not in CI (only if it doesn't exist yet)
 if [ -z "$GITHUB_STEP_SUMMARY" ]; then
     GITHUB_STEP_SUMMARY="$PWD/local_github_step_summary.md"
-    touch "$GITHUB_STEP_SUMMARY"
+    # Don't reset here - the main setup script already created/reset it
 fi
 
 echo "=== Run Script: RuntimeCrashChecker Testing ==="
