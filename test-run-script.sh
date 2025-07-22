@@ -21,10 +21,25 @@ fi
 # Ensure test result directory exists
 mkdir -p test_result
 
-# Take screenshot before launch
+# Take screenshot before launch (reduced size for GitHub summary)
 echo "Taking screenshot before app launch..."
-adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_before_launch.png
-echo "Before launch screenshot saved as test_result/screenshot_before_launch.png"
+adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_before_launch_full.png
+
+# Create a smaller version
+if command -v convert >/dev/null 2>&1; then
+    echo "Creating smaller before launch screenshot..."
+    convert test_result/screenshot_before_launch_full.png -resize 50% -quality 60 test_result/screenshot_before_launch.png
+    rm test_result/screenshot_before_launch_full.png
+    echo "Compressed before launch screenshot saved"
+elif command -v sips >/dev/null 2>&1; then
+    echo "Creating smaller before launch screenshot using sips..."
+    sips -Z 400 -s format png test_result/screenshot_before_launch_full.png --out test_result/screenshot_before_launch.png
+    rm test_result/screenshot_before_launch_full.png
+    echo "Resized before launch screenshot saved"
+else
+    echo "No image compression tool found, using original size"
+    mv test_result/screenshot_before_launch_full.png test_result/screenshot_before_launch.png
+fi
 
 # Launch the RuntimeCrashChecker app MainActivity directly
 echo "Launching RuntimeCrashChecker MainActivity..."
@@ -34,10 +49,25 @@ adb -s $ADB_DEVICE_SERIAL shell am start -n $PACKAGE_NAME/.MainActivity
 echo "Waiting for app to load..."
 sleep 5
 
-# Take screenshot after launch
+# Take screenshot after launch (reduced size for GitHub summary)
 echo "Taking screenshot after app launch..."
-adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_after_launch.png
-echo "After launch screenshot saved as test_result/screenshot_after_launch.png"
+adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_after_launch_full.png
+
+# Create a smaller version
+if command -v convert >/dev/null 2>&1; then
+    echo "Creating smaller after launch screenshot..."
+    convert test_result/screenshot_after_launch_full.png -resize 50% -quality 60 test_result/screenshot_after_launch.png
+    rm test_result/screenshot_after_launch_full.png
+    echo "Compressed after launch screenshot saved"
+elif command -v sips >/dev/null 2>&1; then
+    echo "Creating smaller after launch screenshot using sips..."
+    sips -Z 400 -s format png test_result/screenshot_after_launch_full.png --out test_result/screenshot_after_launch.png
+    rm test_result/screenshot_after_launch_full.png
+    echo "Resized after launch screenshot saved"
+else
+    echo "No image compression tool found, using original size"
+    mv test_result/screenshot_after_launch_full.png test_result/screenshot_after_launch.png
+fi
 
 # Add completion summary
 if [ -n "$GITHUB_STEP_SUMMARY" ]; then

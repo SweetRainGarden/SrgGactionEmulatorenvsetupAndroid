@@ -35,10 +35,26 @@ echo "Setting up app configuration..."
 # Create test result directory
 mkdir -p test_result
 
-# Take initial screenshot
+# Take initial screenshot (reduced size for GitHub summary)
 echo "Taking initial screenshot..."
-adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_initial.png
-echo "Initial screenshot saved as test_result/screenshot_initial.png"
+adb -s $ADB_DEVICE_SERIAL exec-out screencap -p > test_result/screenshot_initial_full.png
+
+# Create a smaller version using ImageMagick if available, otherwise use original
+if command -v convert >/dev/null 2>&1; then
+    echo "Creating smaller screenshot for summary..."
+    convert test_result/screenshot_initial_full.png -resize 50% -quality 60 test_result/screenshot_initial.png
+    rm test_result/screenshot_initial_full.png
+    echo "Compressed screenshot saved as test_result/screenshot_initial.png"
+elif command -v sips >/dev/null 2>&1; then
+    echo "Creating smaller screenshot using sips..."
+    sips -Z 400 -s format png test_result/screenshot_initial_full.png --out test_result/screenshot_initial.png
+    rm test_result/screenshot_initial_full.png
+    echo "Resized screenshot saved as test_result/screenshot_initial.png"
+else
+    echo "No image compression tool found, using original size"
+    mv test_result/screenshot_initial_full.png test_result/screenshot_initial.png
+    echo "Original screenshot saved as test_result/screenshot_initial.png"
+fi
 
 # Add completion to GitHub Step Summary
 if [ -n "$GITHUB_STEP_SUMMARY" ]; then
