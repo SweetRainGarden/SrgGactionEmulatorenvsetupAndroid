@@ -50,6 +50,23 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Enable KVM group (Linux only)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+        
+    - name: Setup Android SDK
+      shell: bash
+      run: |
+        # Ensure Android SDK is available
+        if [ -z "$ANDROID_SDK_ROOT" ] && [ -z "$ANDROID_HOME" ]; then
+          export ANDROID_HOME=$HOME/android-sdk
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        fi
+        
     - name: Run Android Emulator with APK Testing
       uses: reactivecircus/android-emulator-runner@v2.34.0
       with:
@@ -57,8 +74,11 @@ runs:
         target: ${{ inputs.target }}
         arch: ${{ inputs.arch }}
         profile: ${{ inputs.profile }}
-        emulator-options: ${{ inputs.debug-mode == 'true' && '-no-snapshot-save -gpu swiftshader_indirect -no-audio -no-boot-anim' || inputs.emulator-options }}
+        ram-size: 2048M
+        heap-size: 512M
+        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none
         disable-animations: true
+        force-avd-creation: false
         script: |
           echo "🚀 Starting Android emulator script execution..."
           ${{ github.action_path }}/emulator-script.sh

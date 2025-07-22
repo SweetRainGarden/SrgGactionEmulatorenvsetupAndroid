@@ -36,8 +36,8 @@ jobs:
         apk-path: '${{ github.workspace }}/test_resource/runtime_crash_checker_app_debug.apk'
         pre-script-path: '${{ github.workspace }}/test-pre-script.sh'
         run-script-path: '${{ github.workspace }}/test-run-script.sh'
-        api-level: '29'
-        target: 'google_apis'
+        api-level: '28'
+        target: 'default'
         arch: 'x86_64'
         
     - name: Verify Action Output
