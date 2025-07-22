@@ -35,6 +35,7 @@ jobs:
         
     - name: Run Android Emulator Action
       id: emulator-test
+      timeout-minutes: 15
       uses: ./
       with:
         apk-path: '${{ github.workspace }}/test_resource/runtime_crash_checker_app_debug.apk'

@@ -58,20 +58,23 @@ PROFILE=${PROFILE:-"Nexus 6"}
 
 # Configure GPU options based on host system
 if [[ "$HOST_OS" == "Linux" ]]; then
-    # Linux - try hardware acceleration, fallback to software
-    GPU_OPTIONS="-gpu host"
-    print_info "Linux detected - attempting hardware GPU acceleration"
+    # Linux - use software rendering for CI reliability
+    GPU_OPTIONS="-gpu swiftshader_indirect"
+    print_info "Linux detected - using software rendering for CI reliability"
 else
-    # macOS and others - use software rendering
+    # macOS - use software rendering
     GPU_OPTIONS="-gpu swiftshader_indirect"
 fi
 
+# Optimize emulator options for faster CI startup
+CI_OPTIMIZATIONS="-no-snapshot-save -no-audio -no-boot-anim -accel auto -netdelay none -netspeed full -delay-adb"
+
 # Check for debug/local mode - enable window for visualization
 if [ "$DEBUG_MODE" = "true" ] || [ "$LOCAL_MODE" = "true" ]; then
-    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save $GPU_OPTIONS -no-audio -no-boot-anim"}
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"$CI_OPTIMIZATIONS $GPU_OPTIONS"}
     print_info "Debug/Local mode enabled - emulator window will be visible"
 else
-    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -no-window $GPU_OPTIONS -no-audio -no-boot-anim"}
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"$CI_OPTIMIZATIONS -no-window $GPU_OPTIONS"}
 fi
 
 AVD_NAME="test-emulator-api-${API_LEVEL}"
@@ -166,14 +169,21 @@ echo "no" | avdmanager create avd \
 AVD_PATH="$HOME/.android/avd/${AVD_NAME}.avd"
 if [ -f "$AVD_PATH/config.ini" ]; then
     print_info "Configuring AVD for CI environment..."
-    # Optimize for CI
-    echo "hw.lcd.density=240" >> "$AVD_PATH/config.ini"
-    echo "hw.ramSize=2048" >> "$AVD_PATH/config.ini"
-    echo "vm.heapSize=256" >> "$AVD_PATH/config.ini"
+    # Optimize for CI - minimal resource usage
+    echo "hw.lcd.density=160" >> "$AVD_PATH/config.ini"
+    echo "hw.ramSize=1536" >> "$AVD_PATH/config.ini"
+    echo "vm.heapSize=128" >> "$AVD_PATH/config.ini"
     echo "hw.accelerometer=no" >> "$AVD_PATH/config.ini"
     echo "hw.gps=no" >> "$AVD_PATH/config.ini"
     echo "hw.camera.back=none" >> "$AVD_PATH/config.ini"
     echo "hw.camera.front=none" >> "$AVD_PATH/config.ini"
+    echo "hw.sensors.proximity=no" >> "$AVD_PATH/config.ini"
+    echo "hw.sensors.orientation=no" >> "$AVD_PATH/config.ini"
+    echo "hw.dPad=no" >> "$AVD_PATH/config.ini"
+    echo "hw.trackBall=no" >> "$AVD_PATH/config.ini"
+    echo "hw.keyboard=yes" >> "$AVD_PATH/config.ini"
+    echo "hw.keyboard.lid=no" >> "$AVD_PATH/config.ini"
+    echo "disk.dataPartition.size=2048m" >> "$AVD_PATH/config.ini"
 fi
 
 # Set fast shutdown for CI environments  
@@ -208,7 +218,7 @@ print_info "Using device serial: $ADB_DEVICE_SERIAL"
 
 # Wait for system to be ready
 timeout_counter=0
-max_timeout=300 # 5 minutes
+max_timeout=180 # 3 minutes (reduced from 5)
 
 while true; do
     if [ $timeout_counter -ge $max_timeout ]; then
