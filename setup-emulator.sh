@@ -10,14 +10,26 @@ NC='\033[0m' # No Color
 # Function to print colored output
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "✅ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
 }
 
 print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "⚠️ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
 }
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "❌ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
 }
 
 # Set default values
@@ -63,6 +75,26 @@ else
 fi
 
 AVD_NAME="test-emulator-api-${API_LEVEL}"
+
+# Initialize GitHub Step Summary (create local file if not in CI)
+if [ -z "$GITHUB_STEP_SUMMARY" ]; then
+    GITHUB_STEP_SUMMARY="$PWD/github_step_summary.md"
+    touch "$GITHUB_STEP_SUMMARY"
+    echo "" > "$GITHUB_STEP_SUMMARY"
+    echo "Local summary will be saved to: $GITHUB_STEP_SUMMARY"
+fi
+
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+    echo "# 📱 Android Emulator Setup Summary" >> "$GITHUB_STEP_SUMMARY"
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    echo "## Configuration" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **API Level**: $API_LEVEL" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Target**: $TARGET" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Architecture**: $ARCH" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Profile**: $PROFILE" >> "$GITHUB_STEP_SUMMARY"
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    echo "## Setup Progress" >> "$GITHUB_STEP_SUMMARY"
+fi
 
 print_info "Starting Android emulator setup..."
 print_info "API Level: $API_LEVEL"
@@ -253,6 +285,18 @@ fi
 print_info "Android emulator setup completed successfully!"
 print_info "Emulator name: $AVD_NAME"
 print_info "Device serial: $ADB_DEVICE_SERIAL"
+
+# Add final summary to GitHub Step Summary
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    echo "## 🎉 Setup Complete!" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Emulator Name**: \`$AVD_NAME\`" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Device Serial**: \`$ADB_DEVICE_SERIAL\`" >> "$GITHUB_STEP_SUMMARY"
+    if [ -n "$PACKAGE_NAME" ]; then
+        echo "- **Installed Package**: \`$PACKAGE_NAME\`" >> "$GITHUB_STEP_SUMMARY"
+    fi
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+fi
 
 # Keep emulator running for subsequent steps
 print_info "Emulator will continue running for subsequent workflow steps..."
