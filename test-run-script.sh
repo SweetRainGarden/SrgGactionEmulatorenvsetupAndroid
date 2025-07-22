@@ -1,7 +1,8 @@
 #!/bin/bash
 # Initialize local summary file if not in CI (only if it doesn't exist yet)
 if [ -z "$GITHUB_STEP_SUMMARY" ]; then
-    GITHUB_STEP_SUMMARY="$PWD/local_github_step_summary.md"
+    mkdir -p test_result
+    GITHUB_STEP_SUMMARY="$PWD/test_result/local_github_step_summary.md"
     # Don't reset here - the main setup script already created/reset it
 fi
 

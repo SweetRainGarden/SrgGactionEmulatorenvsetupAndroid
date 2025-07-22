@@ -33,8 +33,5 @@ google-services.json
 # Android Profiling
 *.hprof
 
-# Test results
+# Test results (includes local_github_step_summary.md)
 test_result/
-
-# Local GitHub step summary
-local_github_step_summary.md

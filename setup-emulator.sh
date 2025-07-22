@@ -78,7 +78,9 @@ AVD_NAME="test-emulator-api-${API_LEVEL}"
 
 # Initialize GitHub Step Summary (create local file if not in CI)
 if [ -z "$GITHUB_STEP_SUMMARY" ]; then
-    GITHUB_STEP_SUMMARY="$PWD/local_github_step_summary.md"
+    # Create test_result directory if it doesn't exist
+    mkdir -p test_result
+    GITHUB_STEP_SUMMARY="$PWD/test_result/local_github_step_summary.md"
     # Reset/create the file fresh for each run
     echo "" > "$GITHUB_STEP_SUMMARY"
     echo "Local summary will be saved to: $GITHUB_STEP_SUMMARY"
