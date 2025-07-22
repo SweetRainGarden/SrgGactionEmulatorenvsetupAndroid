@@ -9,11 +9,21 @@ on:
 
 jobs:
   test-android-emulator:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Show Runner Information  
+      run: |
+        echo "=== Runner Information ==="
+        echo "OS: $(uname -s)"
+        echo "Architecture: $(uname -m)"
+        echo "Runner: ${{ matrix.os }}"
     
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
@@ -33,7 +43,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-results
+        name: test-results-${{ matrix.os }}
         path: |
           test_result/
           *.png
@@ -50,9 +60,10 @@ jobs:
         ls -la test_result/ || echo "No test_result directory found"
 
   test-different-api-levels:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [ubuntu-latest, macos-latest]
         api-level: [28, 29, 30]
     
     steps:
@@ -62,7 +73,7 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
     
-    - name: Test API Level ${{ matrix.api-level }}
+    - name: Test API Level ${{ matrix.api-level }} on ${{ matrix.os }}
       uses: ./
       with:
         apk-path: '${{ github.workspace }}/test_res/runtime_crash_checker_app_debug.apk'
@@ -74,6 +85,6 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: api-${{ matrix.api-level }}-results
+        name: api-${{ matrix.api-level }}-${{ matrix.os }}-results
         path: test_result/
         retention-days: 3

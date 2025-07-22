@@ -9,11 +9,22 @@ on:
 jobs:
   test-emulator-setup:
     name: Test Emulator Setup Action
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
     
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
+      
+    - name: Show Runner Information
+      run: |
+        echo "=== Runner Information ==="
+        echo "OS: $(uname -s)"
+        echo "Architecture: $(uname -m)"
+        echo "Runner: ${{ matrix.os }}"
+        echo "Kernel: $(uname -r)"
       
     - name: Set up Android SDK
       uses: android-actions/setup-android@v3
@@ -71,14 +82,23 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: emulator-test-results
+        name: emulator-test-results-${{ matrix.os }}
         path: |
           test_result/
         retention-days: 5
         
-    - name: Cleanup
-      if: always()
+    - name: Cleanup (Linux)
+      if: always() && matrix.os == 'ubuntu-latest'
       run: |
-        # Kill any remaining emulator processes
+        # Kill any remaining emulator processes on Linux
         pkill -f emulator || true
         adb kill-server || true
+        
+    - name: Cleanup (macOS)
+      if: always() && matrix.os == 'macos-latest'
+      run: |
+        # Kill any remaining emulator processes on macOS
+        pkill -f emulator || true
+        adb kill-server || true
+        # Additional cleanup for macOS if needed
+        killall qemu-system-x86_64 2>/dev/null || true
