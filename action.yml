@@ -1,0 +1,62 @@
+name: 'Android Emulator Setup and APK Runner'
+description: 'Setup Android emulator environment, install APK, run pre-script for initialization, and execute app via ADB commands'
+author: 'rtang'
+
+inputs:
+  apk-path:
+    description: 'Absolute path to the APK file to install'
+    required: true
+  pre-script-path:
+    description: 'Path to pre-script that runs after APK installation (e.g., login process, token injection)'
+    required: false
+    default: ''
+  run-script-path:
+    description: 'Path to script that runs the APK via ADB commands (e.g., start pages, UI automation)'
+    required: false
+    default: ''
+  api-level:
+    description: 'Android API level for the emulator'
+    required: false
+    default: '29'
+  target:
+    description: 'Android target (google_apis or default)'
+    required: false
+    default: 'google_apis'
+  arch:
+    description: 'Android architecture (x86_64 or x86)'
+    required: false
+    default: 'x86_64'
+  profile:
+    description: 'AVD hardware profile'
+    required: false
+    default: 'Nexus 6'
+  emulator-options:
+    description: 'Additional emulator startup options'
+    required: false
+    default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim'
+
+outputs:
+  emulator-name:
+    description: 'Name of the created Android emulator'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Android Emulator Environment
+      shell: bash
+      run: |
+        echo "Setting up Android emulator environment..."
+        ${{ github.action_path }}/setup-emulator.sh
+      env:
+        API_LEVEL: ${{ inputs.api-level }}
+        TARGET: ${{ inputs.target }}
+        ARCH: ${{ inputs.arch }}
+        PROFILE: ${{ inputs.profile }}
+        EMULATOR_OPTIONS: ${{ inputs.emulator-options }}
+        APK_PATH: ${{ inputs.apk-path }}
+        PRE_SCRIPT_PATH: ${{ inputs.pre-script-path }}
+        RUN_SCRIPT_PATH: ${{ inputs.run-script-path }}
+
+branding:
+  icon: 'smartphone'
+  color: 'green'
