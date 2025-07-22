@@ -1,0 +1,79 @@
+name: Test Android Emulator Action
+
+on:
+  push:
+    branches: [ develop, main ]
+  pull_request:
+    branches: [ develop, main ]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  test-android-emulator:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Test Android Emulator Action
+      uses: ./
+      with:
+        apk-path: '${{ github.workspace }}/test_res/runtime_crash_checker_app_debug.apk'
+        pre-script-path: '${{ github.workspace }}/test-pre-script.sh'
+        run-script-path: '${{ github.workspace }}/test-run-script.sh'
+        api-level: '29'
+        target: 'google_apis'
+        arch: 'x86_64'
+        profile: 'Nexus 6'
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          test_result/
+          *.png
+        retention-days: 7
+        
+    - name: List emulator processes
+      if: always()
+      run: |
+        echo "=== ADB Devices ==="
+        adb devices
+        echo "=== Running Emulators ==="
+        ps aux | grep emulator || true
+        echo "=== Test Results Directory ==="
+        ls -la test_result/ || echo "No test_result directory found"
+
+  test-different-api-levels:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        api-level: [28, 29, 30]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Test API Level ${{ matrix.api-level }}
+      uses: ./
+      with:
+        apk-path: '${{ github.workspace }}/test_res/runtime_crash_checker_app_debug.apk'
+        api-level: '${{ matrix.api-level }}'
+        target: 'google_apis'
+        arch: 'x86_64'
+        
+    - name: Upload API ${{ matrix.api-level }} results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: api-${{ matrix.api-level }}-results
+        path: test_result/
+        retention-days: 3

@@ -1,5 +1,7 @@
 # Android Emulator Setup and APK Runner
 
+[![CI](https://github.com/SweetRainGarden/SrgGactionEmulatorenvsetupAndroid/actions/workflows/ci.yml/badge.svg)](https://github.com/SweetRainGarden/SrgGactionEmulatorenvsetupAndroid/actions/workflows/ci.yml)
+
 A GitHub Action that sets up an Android emulator environment, installs APK files, and runs initialization and testing scripts for CI/CD pipelines.
 
 ## Features

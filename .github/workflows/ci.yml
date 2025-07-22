@@ -1,0 +1,84 @@
+name: CI - Test Emulator Action
+
+on:
+  push:
+    branches: [ develop ]
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  test-emulator-setup:
+    name: Test Emulator Setup Action
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 29
+        target: google_apis
+        arch: x86_64
+        
+    - name: Run Android Emulator Action
+      id: emulator-test
+      uses: ./
+      with:
+        apk-path: '${{ github.workspace }}/test_res/runtime_crash_checker_app_debug.apk'
+        pre-script-path: '${{ github.workspace }}/test-pre-script.sh'
+        run-script-path: '${{ github.workspace }}/test-run-script.sh'
+        api-level: '29'
+        target: 'google_apis'
+        arch: 'x86_64'
+        
+    - name: Verify Action Output
+      run: |
+        echo "Emulator name: ${{ steps.emulator-test.outputs.emulator-name }}"
+        
+    - name: Check Test Results
+      run: |
+        echo "=== Checking test results ==="
+        if [ -d "test_result" ]; then
+          echo "✅ test_result directory exists"
+          ls -la test_result/
+          
+          # Check for expected screenshots
+          if [ -f "test_result/screenshot_initial.png" ]; then
+            echo "✅ Initial screenshot found"
+          else
+            echo "❌ Initial screenshot missing"
+          fi
+          
+          if [ -f "test_result/screenshot_before_launch.png" ]; then
+            echo "✅ Before launch screenshot found"
+          else
+            echo "❌ Before launch screenshot missing"
+          fi
+          
+          if [ -f "test_result/screenshot_after_launch.png" ]; then
+            echo "✅ After launch screenshot found"
+          else
+            echo "❌ After launch screenshot missing"
+          fi
+        else
+          echo "❌ test_result directory not found"
+          exit 1
+        fi
+        
+    - name: Upload Screenshots and Logs
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: emulator-test-results
+        path: |
+          test_result/
+        retention-days: 5
+        
+    - name: Cleanup
+      if: always()
+      run: |
+        # Kill any remaining emulator processes
+        pkill -f emulator || true
+        adb kill-server || true
