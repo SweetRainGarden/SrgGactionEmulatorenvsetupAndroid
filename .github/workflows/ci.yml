@@ -87,18 +87,9 @@ jobs:
           test_result/
         retention-days: 5
         
-    - name: Cleanup (Linux)
-      if: always() && matrix.os == 'ubuntu-latest'
+    - name: Final Cleanup
+      if: always()
       run: |
-        # Kill any remaining emulator processes on Linux
-        pkill -f emulator || true
+        # Kill any remaining processes and clean up ADB
         adb kill-server || true
-        
-    - name: Cleanup (macOS)
-      if: always() && matrix.os == 'macos-latest'
-      run: |
-        # Kill any remaining emulator processes on macOS
-        pkill -f emulator || true
-        adb kill-server || true
-        # Additional cleanup for macOS if needed
-        killall qemu-system-x86_64 2>/dev/null || true
+        echo "Cleanup completed"

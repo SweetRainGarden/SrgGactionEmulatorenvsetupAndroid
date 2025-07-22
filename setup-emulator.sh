@@ -142,6 +142,9 @@ if [ -f "$AVD_PATH/config.ini" ]; then
     echo "hw.camera.front=none" >> "$AVD_PATH/config.ini"
 fi
 
+# Set fast shutdown for CI environments  
+export ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL=${ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL:-5}
+
 # Start emulator in background
 print_info "Starting emulator with options: $EMULATOR_OPTIONS"
 emulator -avd "$AVD_NAME" $EMULATOR_OPTIONS &
@@ -151,8 +154,13 @@ EMULATOR_PID=$!
 cleanup() {
     print_info "Cleaning up emulator process..."
     if [ -n "$EMULATOR_PID" ] && kill -0 "$EMULATOR_PID" 2>/dev/null; then
-        kill "$EMULATOR_PID" || true
+        print_info "Force killing emulator (PID: $EMULATOR_PID)"
+        kill -KILL "$EMULATOR_PID" 2>/dev/null || true
     fi
+    
+    # Kill any remaining emulator processes aggressively
+    pkill -f "emulator.*$AVD_NAME" 2>/dev/null || true
+    pkill -f "qemu-system" 2>/dev/null || true
 }
 trap cleanup EXIT
 
