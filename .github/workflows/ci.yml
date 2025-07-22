@@ -37,7 +37,7 @@ jobs:
       id: emulator-test
       uses: ./
       with:
-        apk-path: '${{ github.workspace }}/test_res/runtime_crash_checker_app_debug.apk'
+        apk-path: '${{ github.workspace }}/test_resource/runtime_crash_checker_app_debug.apk'
         pre-script-path: '${{ github.workspace }}/test-pre-script.sh'
         run-script-path: '${{ github.workspace }}/test-run-script.sh'
         api-level: '29'

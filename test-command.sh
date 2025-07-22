@@ -4,7 +4,7 @@
 echo "=== Starting RuntimeCrashChecker Emulator Test ==="
 
 # Set environment variables
-export APK_PATH="/Users/rtang/StudioProjects/SrgGactionEmulatorenvsetupAndroid/test_res/runtime_crash_checker_app_debug.apk"
+export APK_PATH="/Users/rtang/StudioProjects/SrgGactionEmulatorenvsetupAndroid/test_resource/runtime_crash_checker_app_debug.apk"
 export PRE_SCRIPT_PATH="/Users/rtang/StudioProjects/SrgGactionEmulatorenvsetupAndroid/test-pre-script.sh"
 export RUN_SCRIPT_PATH="/Users/rtang/StudioProjects/SrgGactionEmulatorenvsetupAndroid/test-run-script.sh"
 export API_LEVEL=29
