@@ -105,7 +105,7 @@ else
     print_warning "No run script provided or script file not found: $RUN_SCRIPT_PATH"
 fi
 
-# Add final summary to GitHub Step Summary
+# Add final summary with screenshots to GitHub Step Summary
 if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     echo "" >> "$GITHUB_STEP_SUMMARY"
     echo "## 🎉 Testing Complete!" >> "$GITHUB_STEP_SUMMARY"
@@ -114,6 +114,32 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
         echo "- **Installed Package**: \`$PACKAGE_NAME\`" >> "$GITHUB_STEP_SUMMARY"
     fi
     echo "" >> "$GITHUB_STEP_SUMMARY"
+    
+    # Add screenshots to summary if they exist
+    echo "## 📸 Screenshots" >> "$GITHUB_STEP_SUMMARY"
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    
+    # Function to add screenshot to summary
+    add_screenshot_to_summary() {
+        local screenshot_path="$1"
+        local title="$2"
+        if [ -f "$screenshot_path" ]; then
+            echo "### $title" >> "$GITHUB_STEP_SUMMARY"
+            if command -v base64 >/dev/null 2>&1; then
+                local base64_image=$(base64 -i "$screenshot_path" | tr -d '\n')
+                echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
+            else
+                echo "Screenshot saved: \`$screenshot_path\`" >> "$GITHUB_STEP_SUMMARY"
+            fi
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+        fi
+    }
+    
+    # Add screenshots if they exist
+    add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
+    add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
+    add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
+    
 fi
 
 # Set outputs for GitHub Actions
