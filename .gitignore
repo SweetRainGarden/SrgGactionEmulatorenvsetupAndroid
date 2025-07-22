@@ -37,4 +37,4 @@ google-services.json
 test_result/
 
 # Local GitHub step summary
-github_step_summary.md
+local_github_step_summary.md

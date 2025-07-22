@@ -1,7 +1,7 @@
 #!/bin/bash
 # Initialize local summary file if not in CI
 if [ -z "$GITHUB_STEP_SUMMARY" ]; then
-    GITHUB_STEP_SUMMARY="$PWD/github_step_summary.md"
+    GITHUB_STEP_SUMMARY="$PWD/local_github_step_summary.md"
     touch "$GITHUB_STEP_SUMMARY"
 fi
 
