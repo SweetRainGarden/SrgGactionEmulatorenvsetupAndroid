@@ -162,12 +162,7 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
             # Only embed small images (under 200KB) to avoid GitHub's 1MB limit
             if [ "$file_size_kb" -lt 200 ] && command -v base64 >/dev/null 2>&1; then
                 local base64_image=$(base64 -i "$screenshot_path" | tr -d '\n')
-                echo "" >> "$GITHUB_STEP_SUMMARY"
-                echo "<details><summary>📱 View Screenshot</summary>" >> "$GITHUB_STEP_SUMMARY"
-                echo "" >> "$GITHUB_STEP_SUMMARY"
                 echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
-                echo "" >> "$GITHUB_STEP_SUMMARY"
-                echo "</details>" >> "$GITHUB_STEP_SUMMARY"
             else
                 echo "📎 Screenshot too large for inline display - check artifacts" >> "$GITHUB_STEP_SUMMARY"
             fi
