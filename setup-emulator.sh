@@ -24,21 +24,42 @@ print_error() {
 API_LEVEL=${API_LEVEL:-29}
 TARGET=${TARGET:-google_apis}
 
-# Auto-detect architecture for Apple Silicon Macs
-if [[ $(uname -m) == "arm64" ]]; then
-    ARCH=${ARCH:-arm64-v8a}
+# Auto-detect architecture based on host system
+HOST_ARCH=$(uname -m)
+HOST_OS=$(uname -s)
+
+if [[ "$HOST_ARCH" == "arm64" ]] || [[ "$HOST_ARCH" == "aarch64" ]]; then
+    if [[ "$HOST_OS" == "Darwin" ]]; then
+        # macOS ARM64 - use ARM64 Android images
+        ARCH=${ARCH:-arm64-v8a}
+    else
+        # Linux ARM64 - use x86_64 with emulation for better compatibility
+        ARCH=${ARCH:-x86_64}
+        print_warning "ARM64 Linux detected, using x86_64 emulation for compatibility"
+    fi
 else
+    # x86_64 systems (Intel/AMD)
     ARCH=${ARCH:-x86_64}
 fi
 
 PROFILE=${PROFILE:-"Nexus 6"}
 
+# Configure GPU options based on host system
+if [[ "$HOST_OS" == "Linux" ]]; then
+    # Linux - try hardware acceleration, fallback to software
+    GPU_OPTIONS="-gpu host"
+    print_info "Linux detected - attempting hardware GPU acceleration"
+else
+    # macOS and others - use software rendering
+    GPU_OPTIONS="-gpu swiftshader_indirect"
+fi
+
 # Check for debug/local mode - enable window for visualization
 if [ "$DEBUG_MODE" = "true" ] || [ "$LOCAL_MODE" = "true" ]; then
-    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -gpu swiftshader_indirect -no-audio -no-boot-anim"}
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save $GPU_OPTIONS -no-audio -no-boot-anim"}
     print_info "Debug/Local mode enabled - emulator window will be visible"
 else
-    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim"}
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -no-window $GPU_OPTIONS -no-audio -no-boot-anim"}
 fi
 
 AVD_NAME="test-emulator-api-${API_LEVEL}"
