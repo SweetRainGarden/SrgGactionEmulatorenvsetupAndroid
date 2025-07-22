@@ -40,6 +40,18 @@ A GitHub Action that sets up an Android emulator environment, installs APK files
     emulator-options: '-no-snapshot-save -no-window -gpu swiftshader_indirect'
 ```
 
+### Local Testing/Debug Example
+
+```yaml
+- name: Setup Android Emulator with Debug Window
+  uses: ./
+  with:
+    apk-path: './app-debug.apk'
+    pre-script-path: './scripts/setup.sh'
+    run-script-path: './scripts/test.sh'
+    debug-mode: 'true'  # Shows emulator window for visualization
+```
+
 ## Inputs
 
 | Input | Description | Required | Default |
@@ -52,6 +64,7 @@ A GitHub Action that sets up an Android emulator environment, installs APK files
 | `arch` | Android architecture (x86_64 or x86) | No | `x86_64` |
 | `profile` | AVD hardware profile | No | `Nexus 6` |
 | `emulator-options` | Additional emulator startup options | No | `-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim` |
+| `debug-mode` | Enable debug mode with visible emulator window | No | `false` |
 
 ## Outputs
 

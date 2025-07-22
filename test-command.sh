@@ -10,7 +10,7 @@ export RUN_SCRIPT_PATH="/Users/rtang/StudioProjects/SrgGactionEmulatorenvsetupAn
 export API_LEVEL=29
 export TARGET=google_apis
 export PROFILE="Nexus 6"
-export EMULATOR_OPTIONS="-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim"
+export DEBUG_MODE=true  # Enable window for local testing visualization
 
 echo "Configuration:"
 echo "  APK Path: $APK_PATH"

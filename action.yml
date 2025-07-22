@@ -34,6 +34,10 @@ inputs:
     description: 'Additional emulator startup options'
     required: false
     default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim'
+  debug-mode:
+    description: 'Enable debug mode with visible emulator window for local testing'
+    required: false
+    default: 'false'
 
 outputs:
   emulator-name:
@@ -53,6 +57,7 @@ runs:
         ARCH: ${{ inputs.arch }}
         PROFILE: ${{ inputs.profile }}
         EMULATOR_OPTIONS: ${{ inputs.emulator-options }}
+        DEBUG_MODE: ${{ inputs.debug-mode }}
         APK_PATH: ${{ inputs.apk-path }}
         PRE_SCRIPT_PATH: ${{ inputs.pre-script-path }}
         RUN_SCRIPT_PATH: ${{ inputs.run-script-path }}

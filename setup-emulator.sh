@@ -32,7 +32,15 @@ else
 fi
 
 PROFILE=${PROFILE:-"Nexus 6"}
-EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim"}
+
+# Check for debug/local mode - enable window for visualization
+if [ "$DEBUG_MODE" = "true" ] || [ "$LOCAL_MODE" = "true" ]; then
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -gpu swiftshader_indirect -no-audio -no-boot-anim"}
+    print_info "Debug/Local mode enabled - emulator window will be visible"
+else
+    EMULATOR_OPTIONS=${EMULATOR_OPTIONS:-"-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim"}
+fi
+
 AVD_NAME="test-emulator-api-${API_LEVEL}"
 
 print_info "Starting Android emulator setup..."
