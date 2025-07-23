@@ -169,8 +169,8 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     }
     
     # Add screenshots if they exist
-    add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
-    add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
+    # add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
+    # add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
     add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
     
 fi
