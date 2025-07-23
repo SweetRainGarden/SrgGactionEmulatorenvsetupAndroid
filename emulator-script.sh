@@ -120,8 +120,10 @@ fi
 
 # Set outputs for GitHub Actions with guard logic
 if [ -n "$GITHUB_OUTPUT" ]; then
-    # Emulator name - always set to consistent value
-    echo "emulator-name=test-emulator" >> "$GITHUB_OUTPUT"
+    # Emulator name - use descriptive name based on configuration
+    EMULATOR_NAME="android-emulator-runner"
+    echo "emulator-name=$EMULATOR_NAME" >> "$GITHUB_OUTPUT"
+    print_info "Output set - Emulator name: $EMULATOR_NAME"
     
     # Device serial - validate and provide fallback
     if [ -n "$ADB_DEVICE_SERIAL" ] && [ "$ADB_DEVICE_SERIAL" != "unknown" ]; then
