@@ -69,14 +69,57 @@ else
     mv test_result/screenshot_after_launch_full.png test_result/screenshot_after_launch.png
 fi
 
-# Add completion summary
+# Add completion summary with detailed screenshot handling
 if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     echo "" >> "$GITHUB_STEP_SUMMARY"
-    echo "## 📸 Screenshots Captured" >> "$GITHUB_STEP_SUMMARY"
-    echo "- ✅ **Before Launch**: \`test_result/screenshot_before_launch.png\`" >> "$GITHUB_STEP_SUMMARY"  
-    echo "- ✅ **After Launch**: \`test_result/screenshot_after_launch.png\`" >> "$GITHUB_STEP_SUMMARY"
+    echo "## 🎉 Testing Complete!" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Device Serial**: \`$ADB_DEVICE_SERIAL\`" >> "$GITHUB_STEP_SUMMARY"
+    if [ -n "$PACKAGE_NAME" ]; then
+        echo "- **Installed Package**: \`$PACKAGE_NAME\`" >> "$GITHUB_STEP_SUMMARY"
+    fi
     echo "- ✅ **MainActivity launched successfully**" >> "$GITHUB_STEP_SUMMARY"
     echo "" >> "$GITHUB_STEP_SUMMARY"
+    
+    # Add screenshots to summary if they exist
+    echo "## 📸 Screenshots" >> "$GITHUB_STEP_SUMMARY"
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    
+    # Function to add screenshot info to summary
+    add_screenshot_to_summary() {
+        local screenshot_path="$1"
+        local title="$2"
+        if [ -f "$screenshot_path" ]; then
+            echo "### $title" >> "$GITHUB_STEP_SUMMARY"
+            
+            # Get file size in KB
+            local file_size_kb
+            if command -v stat >/dev/null 2>&1; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS stat command
+                    file_size_kb=$(($(stat -f%z "$screenshot_path") / 1024))
+                else
+                    # Linux stat command
+                    file_size_kb=$(($(stat -c%s "$screenshot_path") / 1024))
+                fi
+            else
+                file_size_kb="unknown"
+            fi
+            
+            echo "📄 **File**: \`$screenshot_path\` (${file_size_kb}KB)" >> "$GITHUB_STEP_SUMMARY"
+            echo "📸 **Status**: ✅ Captured successfully" >> "$GITHUB_STEP_SUMMARY"
+            echo "📎 **View**: Check the uploaded artifacts below for full image" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+        else
+            echo "### $title" >> "$GITHUB_STEP_SUMMARY"
+            echo "❌ Screenshot not found: \`$screenshot_path\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+        fi
+    }
+    
+    # Add screenshots if they exist
+    add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
+    add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
+    add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
 fi
 
 echo "=== Run script completed ==="

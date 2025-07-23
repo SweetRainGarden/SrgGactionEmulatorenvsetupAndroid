@@ -1,9 +1,24 @@
 #!/bin/bash
-# Initialize local summary file if not in CI (only if it doesn't exist yet)
+# Initialize GitHub Step Summary (create local file if not in CI)
 if [ -z "$GITHUB_STEP_SUMMARY" ]; then
     mkdir -p test_result
     GITHUB_STEP_SUMMARY="$PWD/test_result/local_github_step_summary.md"
-    # Don't reset here - the main setup script already created/reset it
+    # Reset/create the file fresh for each run
+    echo "" > "$GITHUB_STEP_SUMMARY"
+    echo "Local summary will be saved to: $GITHUB_STEP_SUMMARY"
+fi
+
+# Initialize the summary with headers
+if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+    echo "# 📱 Android Emulator APK Testing Summary" >> "$GITHUB_STEP_SUMMARY"
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    echo "## Configuration" >> "$GITHUB_STEP_SUMMARY"
+    echo "- **Emulator**: Already started by android-emulator-runner" >> "$GITHUB_STEP_SUMMARY"
+    if [ -n "$APK_PATH" ]; then
+        echo "- **APK Path**: \`$APK_PATH\`" >> "$GITHUB_STEP_SUMMARY"
+    fi
+    echo "" >> "$GITHUB_STEP_SUMMARY"
+    echo "## Execution Progress" >> "$GITHUB_STEP_SUMMARY"
 fi
 
 echo "=== Pre-script: RuntimeCrashChecker Setup ==="
