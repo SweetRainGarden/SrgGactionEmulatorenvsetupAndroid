@@ -136,30 +136,30 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     echo "## 📸 Screenshots" >> "$GITHUB_STEP_SUMMARY"
     echo "" >> "$GITHUB_STEP_SUMMARY"
     
-    # Function to add screenshot to summary
+    # Function to add screenshot info to summary
     add_screenshot_to_summary() {
         local screenshot_path="$1"
         local title="$2"
         if [ -f "$screenshot_path" ]; then
             echo "### $title" >> "$GITHUB_STEP_SUMMARY"
-
-            # Encode and remove line breaks
-            local base64_image=$(base64 "$screenshot_path" | tr -d '\n')
-
-            # Check actual Base64 size in kilobytes
-            local base64_size_kb=$(echo -n "$base64_image" | wc -c | awk '{print int($1 / 1024)}')
-
-            echo "📄 **File**: \`$screenshot_path\` (${base64_size_kb}KB after Base64)" >> "$GITHUB_STEP_SUMMARY"
-
-            if [ "$base64_size_kb" -lt 700 ]; then
-                echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
-                echo "" >> "$GITHUB_STEP_SUMMARY"
-                echo "<details><summary>🙈 Click to hide screenshot</summary>" >> "$GITHUB_STEP_SUMMARY"
-                echo "Screenshot is shown above" >> "$GITHUB_STEP_SUMMARY"
-                echo "</details>" >> "$GITHUB_STEP_SUMMARY"
+            
+            # Get file size in KB
+            local file_size_kb
+            if command -v stat >/dev/null 2>&1; then
+                if [[ "$OSTYPE" == "darwin"* ]]; then
+                    # macOS stat command
+                    file_size_kb=$(($(stat -f%z "$screenshot_path") / 1024))
+                else
+                    # Linux stat command
+                    file_size_kb=$(($(stat -c%s "$screenshot_path") / 1024))
+                fi
             else
-                echo "📎 Screenshot too large after Base64 encoding - check artifacts" >> "$GITHUB_STEP_SUMMARY"
+                file_size_kb="unknown"
             fi
+            
+            echo "📄 **File**: \`$screenshot_path\` (${file_size_kb}KB)" >> "$GITHUB_STEP_SUMMARY"
+            echo "📸 **Status**: ✅ Captured successfully" >> "$GITHUB_STEP_SUMMARY"
+            echo "📎 **View**: Check the uploaded artifacts below for full image" >> "$GITHUB_STEP_SUMMARY"
             echo "" >> "$GITHUB_STEP_SUMMARY"
         else
             echo "### $title" >> "$GITHUB_STEP_SUMMARY"
@@ -169,12 +169,9 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     }
     
     # Add screenshots if they exist
-    # add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
-    # add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
-    # add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
-    
-    # Test hardcoded small image to verify base64 embedding works
-    add_screenshot_to_summary "$GITHUB_WORKSPACE/test_resource/test_small.png" "🧪 Base64 Test Image"
+    add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
+    add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
+    add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
     
 fi
 
