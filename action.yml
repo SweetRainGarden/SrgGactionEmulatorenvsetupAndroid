@@ -33,7 +33,7 @@ inputs:
   emulator-options:
     description: 'Additional emulator startup options'
     required: false
-    default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim'
+    default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none'
 
 outputs:
   emulator-name:
@@ -75,7 +75,7 @@ runs:
         profile: ${{ inputs.profile }}
         ram-size: 2048M
         heap-size: 512M
-        emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none
+        emulator-options: ${{ inputs.emulator-options }}
         disable-animations: true
         force-avd-creation: false
         script: |
