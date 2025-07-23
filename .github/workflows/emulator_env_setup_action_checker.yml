@@ -42,9 +42,47 @@ jobs:
         
     - name: Verify Action Output
       run: |
-        echo "Emulator name: ${{ steps.emulator-test.outputs.emulator-name }}"
-        echo "Device serial: ${{ steps.emulator-test.outputs.device-serial }}"
-        echo "Package name: ${{ steps.emulator-test.outputs.package-name }}"
+        echo "=== Verifying Action Outputs ==="
+        
+        # Check emulator-name output
+        EMULATOR_NAME="${{ steps.emulator-test.outputs.emulator-name }}"
+        echo "Emulator name: '$EMULATOR_NAME'"
+        if [ -z "$EMULATOR_NAME" ]; then
+          echo "❌ FAIL: emulator-name output is empty"
+          exit 1
+        elif [ "$EMULATOR_NAME" = "android-emulator-runner" ]; then
+          echo "✅ PASS: emulator-name is valid"
+        else
+          echo "⚠️  WARN: emulator-name has unexpected value: $EMULATOR_NAME"
+        fi
+        
+        # Check device-serial output
+        DEVICE_SERIAL="${{ steps.emulator-test.outputs.device-serial }}"
+        echo "Device serial: '$DEVICE_SERIAL'"
+        if [ -z "$DEVICE_SERIAL" ]; then
+          echo "❌ FAIL: device-serial output is empty"
+          exit 1
+        elif [[ "$DEVICE_SERIAL" =~ ^emulator-[0-9]+$ ]]; then
+          echo "✅ PASS: device-serial format is valid"
+        else
+          echo "❌ FAIL: device-serial has invalid format: $DEVICE_SERIAL"
+          exit 1
+        fi
+        
+        # Check package-name output
+        PACKAGE_NAME="${{ steps.emulator-test.outputs.package-name }}"
+        echo "Package name: '$PACKAGE_NAME'"
+        if [ -z "$PACKAGE_NAME" ]; then
+          echo "❌ FAIL: package-name output is empty"
+          exit 1
+        elif [[ "$PACKAGE_NAME" =~ ^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$ ]]; then
+          echo "✅ PASS: package-name format is valid"
+        else
+          echo "❌ FAIL: package-name has invalid format: $PACKAGE_NAME"
+          exit 1
+        fi
+        
+        echo "✅ All action outputs verified successfully!"
         
     - name: Check Test Results
       run: |
