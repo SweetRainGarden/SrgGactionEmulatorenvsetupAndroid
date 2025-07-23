@@ -38,13 +38,13 @@ inputs:
 outputs:
   emulator-name:
     description: 'Name of the created Android emulator'
-    value: ""
+    value: ${{ steps.emulator-runner.outputs.emulator-name }}
   device-serial:
     description: 'Device serial number of the emulator'
-    value: ""
+    value: ${{ steps.emulator-runner.outputs.device-serial }}
   package-name:
     description: 'Package name of the installed APK'
-    value: ""
+    value: ${{ steps.emulator-runner.outputs.package-name }}
 
 runs:
   using: 'composite'
@@ -67,6 +67,7 @@ runs:
         fi
         
     - name: Run Android Emulator with APK Testing
+      id: emulator-runner
       uses: reactivecircus/android-emulator-runner@v2.34.0
       with:
         api-level: ${{ inputs.api-level }}

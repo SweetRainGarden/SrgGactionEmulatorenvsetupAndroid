@@ -104,6 +104,7 @@ fi
 # Set outputs for GitHub Actions
 echo "emulator-name=test-emulator" >> "$GITHUB_OUTPUT" 2>/dev/null || true
 echo "device-serial=$ADB_DEVICE_SERIAL" >> "$GITHUB_OUTPUT" 2>/dev/null || true
+echo "package-name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT" 2>/dev/null || true
 
 print_info "Android emulator setup completed successfully!"
 print_info "Device serial: $ADB_DEVICE_SERIAL"
