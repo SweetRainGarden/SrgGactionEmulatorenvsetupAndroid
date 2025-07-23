@@ -153,6 +153,10 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
 
             if [ "$base64_size_kb" -lt 700 ]; then
                 echo "![Screenshot](data:image/png;base64,$base64_image)" >> "$GITHUB_STEP_SUMMARY"
+                echo "" >> "$GITHUB_STEP_SUMMARY"
+                echo "<details><summary>🙈 Click to hide screenshot</summary>" >> "$GITHUB_STEP_SUMMARY"
+                echo "Screenshot is shown above" >> "$GITHUB_STEP_SUMMARY"
+                echo "</details>" >> "$GITHUB_STEP_SUMMARY"
             else
                 echo "📎 Screenshot too large after Base64 encoding - check artifacts" >> "$GITHUB_STEP_SUMMARY"
             fi
@@ -165,8 +169,8 @@ if [ -n "$GITHUB_STEP_SUMMARY" ]; then
     }
     
     # Add screenshots if they exist
-    # add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
-    # add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
+    add_screenshot_to_summary "test_result/screenshot_initial.png" "📱 Initial State"
+    add_screenshot_to_summary "test_result/screenshot_before_launch.png" "🚀 Before App Launch"
     add_screenshot_to_summary "test_result/screenshot_after_launch.png" "📱 After App Launch"
     
 fi
