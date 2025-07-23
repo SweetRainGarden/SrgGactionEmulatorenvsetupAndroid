@@ -35,14 +35,23 @@ print_error() {
 
 print_info "Android emulator is ready! Starting APK testing..."
 
-# Get device serial
-ADB_DEVICE_SERIAL=$(adb get-serialno)
-print_info "Device serial: $ADB_DEVICE_SERIAL"
+# Get device serial with error handling
+ADB_DEVICE_SERIAL=$(adb get-serialno 2>/dev/null || echo "unknown")
+if [ -n "$ADB_DEVICE_SERIAL" ] && [ "$ADB_DEVICE_SERIAL" != "unknown" ]; then
+    print_info "Device serial: $ADB_DEVICE_SERIAL"
+else
+    print_warning "Could not determine device serial - emulator may not be ready"
+    ADB_DEVICE_SERIAL="unknown"
+fi
 
 # Install APK if provided
 if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
     print_info "Installing APK: $APK_PATH"
-    adb install -r "$APK_PATH"
+    if adb install -r "$APK_PATH"; then
+        print_info "APK installation completed successfully"
+    else
+        print_error "APK installation failed"
+    fi
     
     # Extract package name from APK
     # First try to find aapt in build-tools
@@ -86,7 +95,11 @@ export PACKAGE_NAME
 if [ -n "$PRE_SCRIPT_PATH" ] && [ -f "$PRE_SCRIPT_PATH" ]; then
     print_info "Executing pre-script: $PRE_SCRIPT_PATH"
     chmod +x "$PRE_SCRIPT_PATH"
-    "$PRE_SCRIPT_PATH"
+    if "$PRE_SCRIPT_PATH"; then
+        print_info "Pre-script executed successfully"
+    else
+        print_error "Pre-script execution failed"
+    fi
 else
     print_warning "No pre-script provided or script file not found: $PRE_SCRIPT_PATH"
 fi
@@ -95,16 +108,41 @@ fi
 if [ -n "$RUN_SCRIPT_PATH" ] && [ -f "$RUN_SCRIPT_PATH" ]; then
     print_info "Executing run script: $RUN_SCRIPT_PATH"
     chmod +x "$RUN_SCRIPT_PATH"
-    "$RUN_SCRIPT_PATH"
+    if "$RUN_SCRIPT_PATH"; then
+        print_info "Run script executed successfully"
+    else
+        print_error "Run script execution failed"
+    fi
 else
     print_warning "No run script provided or script file not found: $RUN_SCRIPT_PATH"
 fi
 
 
-# Set outputs for GitHub Actions
-echo "emulator-name=test-emulator" >> "$GITHUB_OUTPUT" 2>/dev/null || true
-echo "device-serial=$ADB_DEVICE_SERIAL" >> "$GITHUB_OUTPUT" 2>/dev/null || true
-echo "package-name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT" 2>/dev/null || true
+# Set outputs for GitHub Actions with guard logic
+if [ -n "$GITHUB_OUTPUT" ]; then
+    # Emulator name - always set to consistent value
+    echo "emulator-name=test-emulator" >> "$GITHUB_OUTPUT"
+    
+    # Device serial - validate and provide fallback
+    if [ -n "$ADB_DEVICE_SERIAL" ] && [ "$ADB_DEVICE_SERIAL" != "unknown" ]; then
+        echo "device-serial=$ADB_DEVICE_SERIAL" >> "$GITHUB_OUTPUT"
+        print_info "Output set - Device serial: $ADB_DEVICE_SERIAL"
+    else
+        echo "device-serial=" >> "$GITHUB_OUTPUT"
+        print_warning "Device serial could not be determined"
+    fi
+    
+    # Package name - validate and provide fallback
+    if [ -n "$PACKAGE_NAME" ]; then
+        echo "package-name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT"
+        print_info "Output set - Package name: $PACKAGE_NAME"
+    else
+        echo "package-name=" >> "$GITHUB_OUTPUT"
+        print_warning "Package name could not be extracted from APK"
+    fi
+else
+    print_warning "GITHUB_OUTPUT not available - outputs not set"
+fi
 
 print_info "Android emulator setup completed successfully!"
 print_info "Device serial: $ADB_DEVICE_SERIAL"
