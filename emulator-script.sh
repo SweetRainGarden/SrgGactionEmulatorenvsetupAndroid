@@ -10,14 +10,26 @@ NC='\033[0m' # No Color
 # Function to print colored output
 print_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "✅ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
 }
 
 print_warning() {
     echo -e "${YELLOW}[WARNING]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "⚠️ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
 }
 
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
+    # Add to GitHub Step Summary if available
+    if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+        echo "❌ $1" >> "$GITHUB_STEP_SUMMARY"
+    fi
     exit 1
 }
 
