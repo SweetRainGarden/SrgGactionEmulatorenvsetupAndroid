@@ -39,6 +39,7 @@ jobs:
         api-level: '28'
         target: 'default'
         arch: 'x86_64'
+        disable-linux-hw-accel: true
         
     - name: Verify Action Output
       run: |
