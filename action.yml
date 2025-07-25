@@ -42,6 +42,10 @@ inputs:
     description: 'Working directory for the emulator runner'
     required: false
     default: '.'
+  sudo-password:
+    description: 'Sudo password for self-hosted runners (use GitHub secrets)'
+    required: false
+    default: ''
 
 outputs:
   emulator-name:
@@ -72,14 +76,21 @@ runs:
             sudo udevadm control --reload-rules
             sudo udevadm trigger --name-match=kvm
             echo "KVM setup completed with sudo"
+          elif [ -n "${{ inputs.sudo-password }}" ]; then
+            echo "Setting up KVM permissions with provided sudo password..."
+            # Use provided password for sudo commands
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | echo "${{ inputs.sudo-password }}" | sudo -S tee /etc/udev/rules.d/99-kvm4all.rules
+            echo "${{ inputs.sudo-password }}" | sudo -S udevadm control --reload-rules
+            echo "${{ inputs.sudo-password }}" | sudo -S udevadm trigger --name-match=kvm
+            echo "KVM setup completed with password sudo"
           else
-            echo "Sudo requires password or not available - trying direct permission change..."
+            echo "Sudo requires password but none provided - trying direct permission change..."
             # Try to change permissions directly (might work if runner has appropriate access)
             if chmod 666 /dev/kvm 2>/dev/null; then
               echo "KVM permissions set directly"
             else
               echo "Could not set KVM permissions - continuing without hardware acceleration"
-              echo "Consider running the runner with appropriate KVM permissions or using disable-linux-hw-accel: true"
+              echo "Consider providing sudo-password input or using disable-linux-hw-accel: true"
             fi
           fi
         else
