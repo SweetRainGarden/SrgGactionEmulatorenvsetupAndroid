@@ -33,11 +33,15 @@ inputs:
   emulator-options:
     description: 'Additional emulator startup options'
     required: false
-    default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none'
+    default: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none -memory 2048'
   disable-linux-hw-accel:
     description: 'Disable hardware acceleration on Linux (useful for environments without KVM)'
     required: false
     default: 'false'
+  working-directory:
+    description: 'Working directory for the emulator runner'
+    required: false
+    default: '.'
 
 outputs:
   emulator-name:
@@ -84,6 +88,7 @@ runs:
         disable-animations: true
         disable-linux-hw-accel: ${{ inputs.disable-linux-hw-accel }}
         force-avd-creation: false
+        working-directory: ${{ inputs.working-directory }}
         script: |
           echo "🚀 Starting Android emulator script execution..."
           ${{ github.action_path }}/emulator-script.sh

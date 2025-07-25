@@ -30,7 +30,7 @@ jobs:
       
     - name: Run Android Emulator Action
       id: emulator-test
-      timeout-minutes: 15
+      timeout-minutes: 20
       uses: ./
       with:
         apk-path: '${{ github.workspace }}/test_resource/runtime_crash_checker_app_debug.apk'
@@ -39,7 +39,8 @@ jobs:
         api-level: '28'
         target: 'default'
         arch: 'x86_64'
-        disable-linux-hw-accel: true
+        disable-linux-hw-accel: ${{ matrix.os == 'ubuntu-latest' }}
+        emulator-options: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none -memory 2048 -partition-size 2048'
         
     - name: Verify Action Output
       run: |
