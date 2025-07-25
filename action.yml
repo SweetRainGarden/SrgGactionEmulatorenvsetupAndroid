@@ -43,7 +43,7 @@ inputs:
     required: false
     default: '.'
   sudo-password:
-    description: 'Sudo password for self-hosted runners (use GitHub secrets)'
+    description: 'Sudo password for self-hosted Linux runners (use GitHub secrets like CI_LINUX_SUDO_PASSWORD)'
     required: false
     default: ''
 
@@ -90,7 +90,7 @@ runs:
               echo "KVM permissions set directly"
             else
               echo "Could not set KVM permissions - continuing without hardware acceleration"
-              echo "Consider providing sudo-password input or using disable-linux-hw-accel: true"
+              echo "Consider providing sudo-password: \${{ secrets.CI_LINUX_SUDO_PASSWORD }} or using disable-linux-hw-accel: true"
             fi
           fi
         else
