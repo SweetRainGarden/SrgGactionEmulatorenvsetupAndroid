@@ -42,6 +42,10 @@ inputs:
     description: 'Working directory for the emulator runner'
     required: false
     default: '.'
+  skip-kvm-setup:
+    description: 'Skip KVM setup on Linux (useful for environments where KVM is not available or causes issues)'
+    required: false
+    default: 'false'
 
 outputs:
   emulator-name:
@@ -58,7 +62,7 @@ runs:
   using: 'composite'
   steps:
     - name: Enable KVM group (Linux only)
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && inputs.skip-kvm-setup != 'true'
       shell: bash
       run: |
         echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
