@@ -40,6 +40,7 @@ jobs:
         target: 'default'
         arch: 'x86_64'
         disable-linux-hw-accel: ${{ matrix.os == 'ubuntu-latest' }}
+        emulator-boot-timeout: ${{ matrix.os == 'ubuntu-latest' && '900' || '600' }}
         emulator-options: '-no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim -camera-back none -camera-front none -memory 2048 -partition-size 2048'
         
     - name: Verify Action Output

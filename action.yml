@@ -46,6 +46,10 @@ inputs:
     description: 'Sudo password for self-hosted Linux runners (use GitHub secrets like CI_LINUX_SUDO_PASSWORD)'
     required: false
     default: ''
+  emulator-boot-timeout:
+    description: 'Timeout in seconds to wait for emulator to boot (default: 600)'
+    required: false
+    default: '600'
 
 outputs:
   emulator-name:
@@ -120,6 +124,7 @@ runs:
         emulator-options: ${{ inputs.emulator-options }}
         disable-animations: true
         disable-linux-hw-accel: ${{ inputs.disable-linux-hw-accel }}
+        emulator-boot-timeout: ${{ inputs.emulator-boot-timeout }}
         force-avd-creation: false
         working-directory: ${{ inputs.working-directory }}
         script: |
