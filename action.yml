@@ -65,9 +65,20 @@ runs:
       if: runner.os == 'Linux' && inputs.skip-kvm-setup != 'true'
       shell: bash
       run: |
-        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-        sudo udevadm control --reload-rules
-        sudo udevadm trigger --name-match=kvm
+        # Check if sudo is available and KVM device exists
+        if command -v sudo >/dev/null 2>&1 && [ -e /dev/kvm ]; then
+          echo "Setting up KVM permissions with sudo..."
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+        elif [ -e /dev/kvm ]; then
+          echo "KVM device exists but sudo not available - trying direct permission change..."
+          # Try to change permissions directly (might work if runner has appropriate access)
+          chmod 666 /dev/kvm 2>/dev/null && echo "KVM permissions set" || echo "Could not set KVM permissions - continuing without hardware acceleration"
+        else
+          echo "KVM device not found or sudo not available - skipping KVM setup"
+          echo "Emulator will run without hardware acceleration"
+        fi
         
     - name: Setup Android SDK
       shell: bash
