@@ -90,7 +90,7 @@ runs:
               echo "KVM permissions set directly"
             else
               echo "Could not set KVM permissions - continuing without hardware acceleration"
-              echo "Consider providing sudo-password: \${{ secrets.CI_LINUX_SUDO_PASSWORD }} or using disable-linux-hw-accel: true"
+              echo "Consider providing sudo-password input (e.g., from secrets.CI_LINUX_SUDO_PASSWORD) or using disable-linux-hw-accel: true"
             fi
           fi
         else
