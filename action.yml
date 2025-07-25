@@ -42,10 +42,6 @@ inputs:
     description: 'Working directory for the emulator runner'
     required: false
     default: '.'
-  skip-kvm-setup:
-    description: 'Skip KVM setup on Linux (useful for environments where KVM setup causes issues)'
-    required: false
-    default: 'false'
 
 outputs:
   emulator-name:
@@ -62,7 +58,7 @@ runs:
   using: 'composite'
   steps:
     - name: Enable KVM group perms (Linux only)
-      if: runner.os == 'Linux' && inputs.skip-kvm-setup != 'true'
+      if: runner.os == 'Linux'
       shell: bash
       run: |
         # Check if sudo is available and KVM device exists
