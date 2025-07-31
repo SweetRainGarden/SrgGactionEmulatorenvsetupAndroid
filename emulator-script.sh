@@ -47,14 +47,8 @@ fi
 # Install APK if provided
 if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
     print_info "Installing APK: $APK_PATH"
-    if adb install -r "$APK_PATH"; then
-        print_info "APK installation completed successfully"
-    else
-        print_error "APK installation failed"
-    fi
     
-    # Extract package name from APK
-    # First try to find aapt in build-tools
+    # Extract package name for pre-installation uninstall check
     AAPT_PATH=""
     if [ -n "$ANDROID_HOME" ]; then
         # Find the latest build-tools version
@@ -71,15 +65,41 @@ if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
         AAPT_PATH="aapt"
     fi
     
+    # Pre-installation uninstall check
     if [ -n "$AAPT_PATH" ]; then
         PACKAGE_NAME=$("$AAPT_PATH" dump badging "$APK_PATH" | grep "^package:" | sed "s/^package: name='\([^']*\)'.*/\1/")
         if [ -n "$PACKAGE_NAME" ]; then
-            print_info "Installed package: $PACKAGE_NAME"
-            # Set output for GitHub Actions
-            echo "package-name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT" 2>/dev/null || true
+            print_info "Extracted package name: $PACKAGE_NAME"
+            
+            # Check if package is already installed
+            if adb shell pm list packages | grep -q "package:$PACKAGE_NAME"; then
+                print_info "Package $PACKAGE_NAME already installed, uninstalling first..."
+                if adb uninstall "$PACKAGE_NAME" 2>/dev/null; then
+                    print_info "Successfully uninstalled existing package"
+                else
+                    print_warning "Could not uninstall existing package (proceeding with installation)"
+                fi
+            else
+                print_info "Package not currently installed, proceeding with fresh installation"
+            fi
         fi
     else
-        print_warning "aapt not available, cannot extract package name"
+        print_warning "aapt not available, skipping uninstall check"
+    fi
+    
+    # Install APK
+    if adb install -r "$APK_PATH"; then
+        print_info "APK installation completed successfully"
+    else
+        print_error "APK installation failed"
+    fi
+    
+    # Set output for GitHub Actions (package name was already extracted above)
+    if [ -n "$PACKAGE_NAME" ]; then
+        print_info "Installed package: $PACKAGE_NAME"
+        echo "package-name=$PACKAGE_NAME" >> "$GITHUB_OUTPUT" 2>/dev/null || true
+    else
+        print_warning "Package name could not be extracted from APK"
         PACKAGE_NAME=""
     fi
 else
