@@ -48,6 +48,20 @@ fi
 if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
     print_info "Installing APK: $APK_PATH"
     
+    # Wait for emulator to be fully ready
+    print_info "Waiting for emulator to be fully ready..."
+    adb wait-for-device
+    sleep 5
+    
+    # Check if device is online and responsive
+    if ! adb shell getprop sys.boot_completed | grep -q "1"; then
+        print_info "Waiting for boot to complete..."
+        timeout 120 bash -c 'while [ "$(adb shell getprop sys.boot_completed | tr -d "\r")" != "1" ]; do sleep 2; done'
+    fi
+    
+    # Additional wait for system services
+    sleep 3
+    
     # Extract package name for pre-installation uninstall check
     AAPT_PATH=""
     if [ -n "$ANDROID_HOME" ]; then
@@ -65,7 +79,7 @@ if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
         AAPT_PATH="aapt"
     fi
     
-    # Pre-installation uninstall check
+    # Pre-installation uninstall check with retry logic
     if [ -n "$AAPT_PATH" ]; then
         PACKAGE_NAME=$("$AAPT_PATH" dump badging "$APK_PATH" | grep "^package:" | sed "s/^package: name='\([^']*\)'.*/\1/")
         if [ -n "$PACKAGE_NAME" ]; then
@@ -74,10 +88,27 @@ if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
             # Check if package is already installed
             if adb shell pm list packages | grep -q "package:$PACKAGE_NAME"; then
                 print_info "Package $PACKAGE_NAME already installed, uninstalling first..."
-                if adb uninstall "$PACKAGE_NAME" 2>/dev/null; then
-                    print_info "Successfully uninstalled existing package"
-                else
-                    print_warning "Could not uninstall existing package (proceeding with installation)"
+                
+                # Retry uninstall with ADB connection reset
+                UNINSTALL_SUCCESS=false
+                for attempt in 1 2; do
+                    print_info "Uninstall attempt $attempt/2..."
+                    if adb uninstall "$PACKAGE_NAME" 2>&1; then
+                        print_info "Successfully uninstalled existing package"
+                        UNINSTALL_SUCCESS=true
+                        break
+                    else
+                        print_warning "Uninstall attempt $attempt failed, resetting ADB connection..."
+                        adb kill-server
+                        sleep 2
+                        adb start-server
+                        adb wait-for-device
+                        sleep 3
+                    fi
+                done
+                
+                if [ "$UNINSTALL_SUCCESS" = false ]; then
+                    print_warning "Could not uninstall existing package after retries (proceeding with installation)"
                 fi
             else
                 print_info "Package not currently installed, proceeding with fresh installation"
@@ -87,11 +118,28 @@ if [ -n "$APK_PATH" ] && [ -f "$APK_PATH" ]; then
         print_warning "aapt not available, skipping uninstall check"
     fi
     
-    # Install APK
-    if adb install -r "$APK_PATH"; then
-        print_info "APK installation completed successfully"
-    else
-        print_error "APK installation failed"
+    # Install APK with retry logic
+    INSTALL_SUCCESS=false
+    for attempt in 1 2 3; do
+        print_info "APK installation attempt $attempt/3..."
+        if adb install -r "$APK_PATH" 2>&1; then
+            print_info "APK installation completed successfully"
+            INSTALL_SUCCESS=true
+            break
+        else
+            print_warning "APK installation attempt $attempt failed, retrying..."
+            sleep 5
+            # Try to restart ADB connection
+            adb kill-server
+            sleep 2
+            adb start-server
+            adb wait-for-device
+            sleep 3
+        fi
+    done
+    
+    if [ "$INSTALL_SUCCESS" = false ]; then
+        print_error "APK installation failed after 3 attempts"
     fi
     
     # Set output for GitHub Actions (package name was already extracted above)
